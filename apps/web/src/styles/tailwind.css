@@ -1,0 +1,25 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Space+Grotesk:wght@500;600&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    background: radial-gradient(circle at 10% 5%, rgba(255, 255, 255, 0.08), transparent 45%),
+      radial-gradient(circle at 80% 10%, rgba(145, 71, 255, 0.15), transparent 60%),
+      linear-gradient(180deg, #03040a 0%, #05050c 65%, #090d1a 100%);
+    color: #f5f5f5;
+  }
+
+  a {
+    color: inherit;
+  }
+}

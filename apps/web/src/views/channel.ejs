@@ -15,13 +15,13 @@
           <div class="hero-panel__content">
             <span class="badge badge--beta">Channel overview</span>
             <h1 class="">
-              <span class="capitlized"><%= channel.displayName %></span>
+              <span class="capitlized text-xl"><%= channel.displayName %></span>
             </h1>
 
             <div class="hero-metrics">
               <div>
-                <span>Last clip</span>
-                <p class="hero-metric"><%= lastClipLabel ?? 'No clips yet' %></p>
+                <span class="text-base">Last clip</span>
+                <p class="text-sm"><%= lastClipLabel ?? 'No clips yet' %></p>
               </div>
             </div>
           </div>
@@ -34,23 +34,29 @@
               <span class="badge badge--status-ready">Online</span>
               <span class="badge badge--beta">Beta</span>
             </div>
-            <div class="hero-kpi-caption muted-copy">Clip signals</div>
             <div class="hero-kpi-grid hero-panel__kpis">
               <article class="stat-card">
+                <span>Last clip</span>
+                <strong class="text-xl"><%= lastClipLabel ?? 'No clips yet' %></strong>
+              </article>
+              <article class="stat-card">
                 <span>Ready</span>
-                <strong><%= clipStats.ready %></strong>
+                <strong  class="text-xl"><%= clipStats.ready %></strong>
                 <span>Video ready for editing</span>
               </article>
               <article class="stat-card">
                 <span>Failed</span>
-                <strong><%= clipStats.failed %></strong>
+                <strong class="text-xl"><%= clipStats.failed %></strong>
                 <span>Needs attention</span>
               </article>
               <article class="stat-card">
                 <span>Pending</span>
-                <strong><%= clipStats.pending %></strong>
+                <strong class="text-xl"><%= clipStats.pending %></strong>
                 <span>Awaiting clip service</span>
               </article>
+
+
+
 
             </div>
           </div>
