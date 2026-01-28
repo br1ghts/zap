@@ -2,8 +2,8 @@ import { ClipRecord, ClipStore, TokenRow, TokenStore } from './types';
 import { createHelixClip, getClipById, HelixError } from './twitch';
 import { refreshToken } from './token';
 
-const POLL_ATTEMPTS = 5;
-const POLL_DELAY_MS = 2000;
+const POLL_ATTEMPTS = 12;
+const POLL_DELAY_MS = 2500;
 
 export type CreateClipPayload = {
   broadcasterId: string;
