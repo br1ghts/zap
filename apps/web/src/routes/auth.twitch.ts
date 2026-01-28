@@ -70,7 +70,13 @@ const authRoute: FastifyPluginAsync = async (fastify) => {
       }
     });
 
-    return reply.redirect(`/channels/${broadcaster.id}`);
+    request.session.set('broadcasterId', broadcaster.id);
+    return reply.redirect('/');
+  });
+
+  fastify.get('/logout', async (request, reply) => {
+    request.session.delete();
+    return reply.redirect('/');
   });
 };
 

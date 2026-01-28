@@ -1,75 +1,102 @@
 <% const body = () => { %>
-  <section class="panel">
-    <div class="panel-heading">
-      <div>
-        <h1><%= channel.displayName %> (<%= channel.login %>)</h1>
-        <p class="muted-copy">ID: <%= channel.broadcasterId %></p>
+  <section class="hero-panel">
+    <div class="hero-panel__info">
+      <span class="chip chip--glow">Private channel</span>
+      <h1><%= channel.displayName %> (<%= channel.login %>)</h1>
+      <p class="muted-copy">Connected since <%= connectedLabel %>. Clips are collected via chat and organized here by stream session.</p>
+    </div>
+    <div class="hero-panel__stats">
+      <div class="stat-card">
+        <p class="stat-label">Clips tracked</p>
+        <p class="stat-value"><%= clipStats.total %></p>
+        <span class="muted-copy">All viewer-sourced content</span>
       </div>
-      <a class="button secondary" href="/">← Back</a>
+      <div class="stat-card">
+        <p class="stat-label">Last request</p>
+        <p class="stat-value"><%= lastClipLabel ?? 'No clips yet' %></p>
+        <span class="muted-copy">Delivered via chat command</span>
+      </div>
     </div>
-    <div class="card-grid">
-      <article class="card">
-        <h3>Settings</h3>
-        <dl>
-          <dt>Cooldown</dt>
-          <dd>30 seconds</dd>
-          <dt>Allowed roles</dt>
-          <dd>Mods + Broadcaster</dd>
-          <dt>Require live</dt>
-          <dd>No</dd>
-        </dl>
-      </article>
-      <article class="card">
-        <h3>Tokens</h3>
-        <dl>
-          <dt>Expires</dt>
-          <dd><%= token ? token.expiresAt.toISOString() : 'Not saved' %></dd>
-          <dt>Scopes</dt>
-          <dd><%= token ? token.scopes : 'n/a' %></dd>
-        </dl>
-      </article>
-    </div>
+  </section>
+
+  <section class="panel panel--grid">
+    <article class="panel-card">
+      <h3>Clip signals</h3>
+      <div class="status-grid">
+        <div class="status-card">
+          <strong><%= clipStats.ready %></strong>
+          <span>Ready</span>
+        </div>
+        <div class="status-card">
+          <strong><%= clipStats.failed %></strong>
+          <span>Failed</span>
+        </div>
+        <div class="status-card">
+          <strong><%= clipStats.pending %></strong>
+          <span>Pending</span>
+        </div>
+        <div class="status-card">
+          <strong><%= clipStats.total %></strong>
+          <span>Total logged</span>
+        </div>
+      </div>
+    </article>
+    <article class="panel-card">
+      <h3>Token</h3>
+      <% if (token) { %>
+        <p class="token-pill">Scopes: <%= token.scopes %></p>
+        <p class="muted-copy">Expires <%= token.expiresLabel %></p>
+      <% } else { %>
+        <p class="muted-copy">Token metadata missing — reconnect to refresh scopes.</p>
+        <a class="button secondary" href="/auth/twitch">Reconnect</a>
+      <% } %>
+    </article>
   </section>
 
   <section class="panel">
     <div class="panel-heading">
-      <h2>Test clip</h2>
+      <h2>Clip timeline</h2>
+      <span class="chip">Viewer-sourced</span>
     </div>
-    <form id="clip-form" class="form-stack">
-      <label class="form-stack">
-        <span class="muted-copy">Note (optional)</span>
-        <textarea name="note" rows="3" placeholder="Add context for the clip..."></textarea>
-      </label>
-      <button type="submit" class="button">Create clip</button>
-      <p id="clip-result" class="result"></p>
-    </form>
+    <% if (clipGroups.length === 0) { %>
+      <p class="muted-copy">No clips recorded yet. Keep redeeming <code>!clip</code> and refresh to see requests populate this view.</p>
+    <% } else { %>
+      <% clipGroups.forEach((group) => { %>
+        <article class="clip-session">
+          <div class="clip-session__header">
+            <div>
+              <h3><%= group.label %></h3>
+              <p><%= group.subtitle %></p>
+            </div>
+            <span class="clip-session__count"><%= group.clips.length %> clip<%= group.clips.length === 1 ? '' : 's' %></span>
+          </div>
+          <div class="clip-session__list">
+            <% group.clips.forEach((clip) => {
+              const tone =
+                clip.status === 'ok' ? 'ok' : clip.status === 'failed' ? 'failed' : 'pending';
+            %>
+              <div class="clip-row">
+                <div class="clip-row__meta">
+                  <p class="clip-row__time"><%= clip.createdAtLabel %></p>
+                  <p class="clip-row__note"><%= clip.note ?? 'No note provided' %></p>
+                  <p class="muted-copy">by <%= clip.requestedBy %></p>
+                </div>
+                <div class="clip-actions">
+                  <span class="clip-status clip-status--<%= tone %>">
+                    <%= clip.status === 'ok' ? 'Ready' : clip.status === 'failed' ? 'Failed' : 'Pending' %>
+                  </span>
+                  <% if (clip.url) { %>
+                    <a class="clip-link" href="<%= clip.url %>" target="_blank" rel="noreferrer">View clip</a>
+                  <% } else if (clip.error) { %>
+                    <p class="clip-error"><%= clip.error %></p>
+                  <% } %>
+                </div>
+              </div>
+            <% }) %>
+          </div>
+        </article>
+      <% }) %>
+    <% } %>
   </section>
-
-  <%- include('clips', { clips }) %>
-
-  <script>
-    const form = document.getElementById('clip-form');
-    const result = document.getElementById('clip-result');
-    form?.addEventListener('submit', async (event) => {
-      event.preventDefault();
-      const formData = new FormData(form);
-      const note = formData.get('note');
-      result.textContent = 'Creating clip…';
-      try {
-        const res = await fetch(`/api/channels/<%= channel.broadcasterId %>/clip`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ note })
-        });
-        const payload = await res.json();
-        if (!res.ok) {
-          throw new Error(payload.error || 'Clip failed');
-        }
-        result.textContent = `Success! ${payload.url}`;
-      } catch (error) {
-        result.textContent = error.message;
-      }
-    });
-  </script>
 <% } %>
-<%- include('layout', { title: `${channel.displayName} clips`, body }) %>
+<%- include('layout', { title: `${channel.displayName} clips`, body, sessionActive }) %>
