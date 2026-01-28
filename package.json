@@ -1,0 +1,26 @@
+{
+  "name": "zap",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter core build && pnpm --filter web dev",
+    "dev:bot": "pnpm --filter core build && pnpm --filter bot dev",
+    "build": "pnpm -r build",
+    "start:web": "pnpm --filter web start",
+    "start:bot": "pnpm --filter bot start",
+    "db:push": "pnpm --filter web prisma db push",
+    "db:migrate": "dotenv -e .env -- pnpm --filter web prisma migrate dev --name init --schema=../../prisma/schema.prisma",
+    "lint": "pnpm -r lint"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "@types/node": "^24.0.0",
+    "dotenv-cli": "^11.0.0",
+    "prisma": "^5.22.0",
+    "typescript": "^5.3.2"
+  }
+}

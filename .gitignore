@@ -1,0 +1,11 @@
+node_modules/
+.pnp.js
+.pnp.cjs
+dist/
+.env
+.env.local
+.dev.db
+dev.db
+*.log
+coverage/
+.DS_Store

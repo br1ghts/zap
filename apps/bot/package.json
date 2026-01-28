@@ -1,0 +1,22 @@
+{
+  "name": "bot",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "dotenv -e ../../.env -- tsx --watch src/index.ts",
+    "build": "tsc -b",
+    "start": "dotenv -e ../../.env -- node dist/index.js",
+    "lint": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@prisma/client": "^5.14.0",
+    "@zap/core": "workspace:^",
+    "pino": "^8.2.0",
+    "tmi.js": "^1.8.5",
+    "zod": "^3.22.2"
+  },
+  "devDependencies": {
+    "tsx": "^4.21.0",
+    "typescript": "^5.3.2"
+  }
+}

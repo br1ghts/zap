@@ -1,0 +1,44 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Channel {
+  id           String   @id @default(cuid())
+  broadcasterId String  @unique
+  login        String
+  displayName  String
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Token {
+  id            String   @id @default(cuid())
+  broadcasterId String   @unique
+  accessToken   String
+  refreshToken  String
+  expiresAt     DateTime
+  scopes        String
+  tokenType     String
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Clip {
+  id            String   @id @default(cuid())
+  broadcasterId String
+  clipId        String?
+  url           String?
+  requestedBy   String
+  requestedById String?
+  note          String?
+  status        String
+  error         String?
+  createdAt     DateTime @default(now())
+
+  @@index([broadcasterId])
+}

@@ -1,0 +1,34 @@
+<section class="panel">
+  <div class="panel-heading">
+    <h2>Recent clips</h2>
+    <span class="chip"><%= clips.length %> queued</span>
+  </div>
+  <% if (clips.length === 0) { %>
+    <p class="muted-copy">No clips requested yet. Hit “Create clip” above to populate this list.</p>
+  <% } else { %>
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>Clip ID</th>
+            <th>Status</th>
+            <th>Requested by</th>
+            <th>Note</th>
+            <th>Created</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% clips.forEach((clip) => { %>
+            <tr>
+              <td><%= clip.clipId ?? 'n/a' %></td>
+              <td><%= clip.status %></td>
+              <td><%= clip.requestedBy %></td>
+              <td><%= clip.note ?? '—' %></td>
+              <td><%= clip.createdAt.toISOString().slice(0, 19).replace('T', ' ') %></td>
+            </tr>
+          <% }) %>
+        </tbody>
+      </table>
+    </div>
+  <% } %>
+</section>

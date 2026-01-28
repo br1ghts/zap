@@ -1,0 +1,75 @@
+<% const body = () => { %>
+  <section class="panel">
+    <div class="panel-heading">
+      <div>
+        <h1><%= channel.displayName %> (<%= channel.login %>)</h1>
+        <p class="muted-copy">ID: <%= channel.broadcasterId %></p>
+      </div>
+      <a class="button secondary" href="/">← Back</a>
+    </div>
+    <div class="card-grid">
+      <article class="card">
+        <h3>Settings</h3>
+        <dl>
+          <dt>Cooldown</dt>
+          <dd>30 seconds</dd>
+          <dt>Allowed roles</dt>
+          <dd>Mods + Broadcaster</dd>
+          <dt>Require live</dt>
+          <dd>No</dd>
+        </dl>
+      </article>
+      <article class="card">
+        <h3>Tokens</h3>
+        <dl>
+          <dt>Expires</dt>
+          <dd><%= token ? token.expiresAt.toISOString() : 'Not saved' %></dd>
+          <dt>Scopes</dt>
+          <dd><%= token ? token.scopes : 'n/a' %></dd>
+        </dl>
+      </article>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>Test clip</h2>
+    </div>
+    <form id="clip-form" class="form-stack">
+      <label class="form-stack">
+        <span class="muted-copy">Note (optional)</span>
+        <textarea name="note" rows="3" placeholder="Add context for the clip..."></textarea>
+      </label>
+      <button type="submit" class="button">Create clip</button>
+      <p id="clip-result" class="result"></p>
+    </form>
+  </section>
+
+  <%- include('clips', { clips }) %>
+
+  <script>
+    const form = document.getElementById('clip-form');
+    const result = document.getElementById('clip-result');
+    form?.addEventListener('submit', async (event) => {
+      event.preventDefault();
+      const formData = new FormData(form);
+      const note = formData.get('note');
+      result.textContent = 'Creating clip…';
+      try {
+        const res = await fetch(`/api/channels/<%= channel.broadcasterId %>/clip`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ note })
+        });
+        const payload = await res.json();
+        if (!res.ok) {
+          throw new Error(payload.error || 'Clip failed');
+        }
+        result.textContent = `Success! ${payload.url}`;
+      } catch (error) {
+        result.textContent = error.message;
+      }
+    });
+  </script>
+<% } %>
+<%- include('layout', { title: `${channel.displayName} clips`, body }) %>

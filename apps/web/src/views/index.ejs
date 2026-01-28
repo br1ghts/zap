@@ -1,0 +1,49 @@
+<% const body = () => { %>
+  <section class="hero-card">
+    <div>
+      <p class="chip">Realtime</p>
+      <h1>Zap keeps your Twitch clips on lock</h1>
+      <p>
+        Authorize a broadcaster, review live clip activity, and queue highlights without leaving the dashboard.
+        Zap mirrors the best of Twitch's own style so you can stay focused on the stream, not on configuration.
+      </p>
+    </div>
+    <div class="hero-actions">
+      <a class="button" href="/auth/twitch">Connect Twitch channel</a>
+      <span class="chip">Live</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="panel-heading">
+      <h2>Connected channels</h2>
+      <span class="chip">Total <%= channels.length %></span>
+    </div>
+    <div>
+      <% if (channels.length === 0) { %>
+        <p class="muted-copy">No channels connected yet. Start by authorizing a broadcaster and Zap will surface clip activity instantly.</p>
+        <a class="button" href="/auth/twitch">Connect a channel</a>
+      <% } else { %>
+        <div class="card-grid">
+          <% channels.forEach((channel) => { %>
+            <article class="card">
+              <div>
+                <p class="muted-copy">Login</p>
+                <h3><%= channel.login %></h3>
+              </div>
+              <div>
+                <p class="muted-copy">Display name</p>
+                <strong><%= channel.displayName %></strong>
+              </div>
+              <div class="panel-row">
+                <span>ID: <%= channel.broadcasterId %></span>
+                <a class="button secondary" href="/channels/<%= channel.broadcasterId %>">Manage</a>
+              </div>
+            </article>
+          <% }) %>
+        </div>
+      <% } %>
+    </div>
+  </section>
+<% } %>
+<%- include('layout', { title: 'Connected Channels', body }) %>
