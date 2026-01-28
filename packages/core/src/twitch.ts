@@ -96,7 +96,7 @@ export async function getClipById(
   const clip = response.data[0];
   return {
     clipId: clip?.id,
-    url: clip?.edit_url
+    url: clip?.url
   };
 }
 

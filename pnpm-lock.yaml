@@ -48,6 +48,9 @@ importers:
         specifier: ^3.22.2
         version: 3.25.76
     devDependencies:
+      '@types/tmi.js':
+        specifier: ^1.8.6
+        version: 1.8.6
       tsx:
         specifier: ^4.21.0
         version: 4.21.0

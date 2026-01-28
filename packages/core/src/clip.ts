@@ -4,6 +4,8 @@ import { refreshToken } from './token';
 
 const POLL_ATTEMPTS = 12;
 const POLL_DELAY_MS = 2500;
+const EXTENDED_POLL_ATTEMPTS = 10;
+const EXTENDED_POLL_DELAY_MS = 15000;
 
 export type CreateClipPayload = {
   broadcasterId: string;
@@ -80,6 +82,10 @@ export async function createClip(options: ClipServiceOptions, payload: CreateCli
       try {
         const result = await createHelixClip(options.clientId, token.accessToken, broadcasterId);
         clipId = result.clipId;
+        console.info('[clip] helix clip created', {
+          broadcasterId,
+          clipId
+        });
         break;
       } catch (error) {
         if (error instanceof HelixError && error.status === 401 && !retriedAfterRefresh) {
@@ -96,9 +102,19 @@ export async function createClip(options: ClipServiceOptions, payload: CreateCli
     }
 
     for (let attempt = 0; attempt < POLL_ATTEMPTS; attempt += 1) {
+      console.info('[clip] polling attempt', {
+        broadcasterId,
+        attempt: attempt + 1,
+        clipId
+      });
       const clipData = await getClipById(options.clientId, token.accessToken, clipId);
       if (clipData.url) {
         clipUrl = clipData.url;
+        console.info('[clip] url resolved', {
+          broadcasterId,
+          clipId,
+          clipUrl
+        });
         break;
       }
 
@@ -129,6 +145,43 @@ export async function createClip(options: ClipServiceOptions, payload: CreateCli
       error: message
     };
     await options.clipStore.saveClip(failureEntry);
+    if (clipId) {
+      scheduleExtendedClipPolling(options, logEntry, clipId);
+    }
     throw error;
   }
+}
+
+function scheduleExtendedClipPolling(options: ClipServiceOptions, logEntry: ClipRecord, clipId: string) {
+  let attempts = 0;
+
+  const tryPoll = async () => {
+    attempts += 1;
+    console.info('[clip] extended polling', {
+      broadcasterId: logEntry.broadcasterId,
+      clipId,
+      attempt: attempts
+    });
+    try {
+      const token = await ensureToken(options, logEntry.broadcasterId);
+      const clipData = await getClipById(options.clientId, token.accessToken, clipId);
+      if (clipData.url) {
+        await options.clipStore.saveClip({
+          ...logEntry,
+          clipId,
+          url: clipData.url,
+          status: 'ok'
+        });
+        return;
+      }
+    } catch {
+      // silent, we'll retry below
+    }
+
+    if (attempts < EXTENDED_POLL_ATTEMPTS) {
+      setTimeout(tryPoll, EXTENDED_POLL_DELAY_MS);
+    }
+  };
+
+  setTimeout(tryPoll, EXTENDED_POLL_DELAY_MS);
 }
