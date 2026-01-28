@@ -1,102 +1,116 @@
+<% const LIVE_THRESHOLD_MS = 1000 * 60 * 8; %>
+<%
+  const latestClip = clipGroups.length ? clipGroups[0].clips[0] : null;
+  const lastClipMs = latestClip ? latestClip.createdAtMs : null;
+  const isLive = lastClipMs !== null && Date.now() - lastClipMs < LIVE_THRESHOLD_MS;
+  const liveStatusLabel = isLive ? 'Live now' : 'Offline';
+  const liveStatusClass = isLive ? 'status-badge--ready' : 'status-badge--offline';
+%>
+
 <% const body = () => { %>
-  <section class="hero-panel">
-    <div class="hero-panel__info">
-      <span class="chip chip--glow">Private channel</span>
-      <h1><%= channel.displayName %> (<%= channel.login %>)</h1>
-      <p class="muted-copy">Connected since <%= connectedLabel %>. Clips are collected via chat and organized here by stream session.</p>
-    </div>
-    <div class="hero-panel__stats">
-      <div class="stat-card">
-        <p class="stat-label">Clips tracked</p>
-        <p class="stat-value"><%= clipStats.total %></p>
-        <span class="muted-copy">All viewer-sourced content</span>
-      </div>
-      <div class="stat-card">
-        <p class="stat-label">Last request</p>
-        <p class="stat-value"><%= lastClipLabel ?? 'No clips yet' %></p>
-        <span class="muted-copy">Delivered via chat command</span>
-      </div>
-    </div>
-  </section>
+  <div class="dashboard-grid">
+    <div class="dashboard-sidebar">
+      <section class="panel-card">
+        <div class="hero-panel">
+          <div class="hero-panel__content">
+            <span class="badge badge--beta">Channel overview</span>
+            <h1 class="">
+              <span class="capitlized"><%= channel.displayName %></span>
+            </h1>
 
-  <section class="panel panel--grid">
-    <article class="panel-card">
-      <h3>Clip signals</h3>
-      <div class="status-grid">
-        <div class="status-card">
-          <strong><%= clipStats.ready %></strong>
-          <span>Ready</span>
-        </div>
-        <div class="status-card">
-          <strong><%= clipStats.failed %></strong>
-          <span>Failed</span>
-        </div>
-        <div class="status-card">
-          <strong><%= clipStats.pending %></strong>
-          <span>Pending</span>
-        </div>
-        <div class="status-card">
-          <strong><%= clipStats.total %></strong>
-          <span>Total logged</span>
-        </div>
-      </div>
-    </article>
-    <article class="panel-card">
-      <h3>Token</h3>
-      <% if (token) { %>
-        <p class="token-pill">Scopes: <%= token.scopes %></p>
-        <p class="muted-copy">Expires <%= token.expiresLabel %></p>
-      <% } else { %>
-        <p class="muted-copy">Token metadata missing — reconnect to refresh scopes.</p>
-        <a class="button secondary" href="/auth/twitch">Reconnect</a>
-      <% } %>
-    </article>
-  </section>
-
-  <section class="panel">
-    <div class="panel-heading">
-      <h2>Clip timeline</h2>
-      <span class="chip">Viewer-sourced</span>
-    </div>
-    <% if (clipGroups.length === 0) { %>
-      <p class="muted-copy">No clips recorded yet. Keep redeeming <code>!clip</code> and refresh to see requests populate this view.</p>
-    <% } else { %>
-      <% clipGroups.forEach((group) => { %>
-        <article class="clip-session">
-          <div class="clip-session__header">
-            <div>
-              <h3><%= group.label %></h3>
-              <p><%= group.subtitle %></p>
-            </div>
-            <span class="clip-session__count"><%= group.clips.length %> clip<%= group.clips.length === 1 ? '' : 's' %></span>
-          </div>
-          <div class="clip-session__list">
-            <% group.clips.forEach((clip) => {
-              const tone =
-                clip.status === 'ok' ? 'ok' : clip.status === 'failed' ? 'failed' : 'pending';
-            %>
-              <div class="clip-row">
-                <div class="clip-row__meta">
-                  <p class="clip-row__time"><%= clip.createdAtLabel %></p>
-                  <p class="clip-row__note"><%= clip.note ?? 'No note provided' %></p>
-                  <p class="muted-copy">by <%= clip.requestedBy %></p>
-                </div>
-                <div class="clip-actions">
-                  <span class="clip-status clip-status--<%= tone %>">
-                    <%= clip.status === 'ok' ? 'Ready' : clip.status === 'failed' ? 'Failed' : 'Pending' %>
-                  </span>
-                  <% if (clip.url) { %>
-                    <a class="clip-link" href="<%= clip.url %>" target="_blank" rel="noreferrer">View clip</a>
-                  <% } else if (clip.error) { %>
-                    <p class="clip-error"><%= clip.error %></p>
-                  <% } %>
-                </div>
+            <div class="hero-metrics">
+              <div>
+                <span>Last clip</span>
+                <p class="hero-metric"><%= lastClipLabel ?? 'No clips yet' %></p>
               </div>
+            </div>
+          </div>
+          <div class="hero-panel__preview">
+            <p class="muted-copy">Live status</p>
+            <span class="status-badge <%= liveStatusClass %>"><%= liveStatusLabel %></span>
+            <p class="muted-copy">Bot status</p>
+
+            <div class="hero-badge-row">
+              <span class="badge badge--status-ready">Online</span>
+              <span class="badge badge--beta">Beta</span>
+            </div>
+            <div class="hero-kpi-caption muted-copy">Clip signals</div>
+            <div class="hero-kpi-grid hero-panel__kpis">
+              <article class="stat-card">
+                <span>Ready</span>
+                <strong><%= clipStats.ready %></strong>
+                <span>Video ready for editing</span>
+              </article>
+              <article class="stat-card">
+                <span>Failed</span>
+                <strong><%= clipStats.failed %></strong>
+                <span>Needs attention</span>
+              </article>
+              <article class="stat-card">
+                <span>Pending</span>
+                <strong><%= clipStats.pending %></strong>
+                <span>Awaiting clip service</span>
+              </article>
+
+            </div>
+          </div>
+        </div>
+      </section>
+
+    </div>
+    <div class="dashboard-main">
+      <section class="section">
+
+        <% if (clipGroups.length === 0) { %>
+          <div class="timeline-empty">
+            No clips recorded yet. Keep redeeming <code>!clip</code> and hit refresh to see requests populate this view.
+          </div>
+        <% } else { %>
+          <div class="timeline">
+            <% clipGroups.forEach((group) => { %>
+              <article class="session-card">
+                <div class="session-card__header">
+                  <div>
+                    <h3><%= group.label %></h3>
+                    <p class="session-card__subtitle"><%= group.subtitle %></p>
+                  </div>
+                  <span class="session-card__count"><%= group.clips.length %> clip<%= group.clips.length === 1 ? '' : 's' %></span>
+                </div>
+                <hr class="timeline-divider" />
+                <% group.clips.forEach((clip) => {
+                  const tone = clip.status === 'ok' ? 'ready' : clip.status === 'failed' ? 'failed' : 'pending';
+                  const label = clip.status === 'ok' ? 'Ready' : clip.status === 'failed' ? 'Failed' : 'Pending';
+                %>
+                  <div class="timeline-row" data-status="<%= tone %>">
+                    <div class="timeline-row__timestamp">
+                      <p><%= clip.createdAtLabel %></p>
+                      <p class="timeline-row__meta">by <%= clip.requestedBy %></p>
+                    </div>
+                    <div class="timeline-row__content">
+                      <p class="timeline-row__note"><%= clip.note ?? 'No note provided' %></p>
+                      <% if (clip.error && !clip.url) { %>
+                        <details class="timeline-row__error">
+                          <summary>Error details</summary>
+                          <pre><%= clip.error %></pre>
+                        </details>
+                      <% } %>
+                    </div>
+                    <div class="timeline-row__actions">
+                      <span class="timeline-row__status <%= tone %>"><%= label %></span>
+                      <% if (clip.url) { %>
+                        <a class="clip-link clip-cta" href="<%= clip.url %>" target="_blank" rel="noreferrer">View clip</a>
+                      <% } else if (!clip.error) { %>
+                        <p class="muted-copy">Awaiting clip service</p>
+                      <% } %>
+                    </div>
+                  </div>
+                <% }) %>
+              </article>
             <% }) %>
           </div>
-        </article>
-      <% }) %>
-    <% } %>
-  </section>
+        <% } %>
+      </section>
+    </div>
+  </div>
 <% } %>
 <%- include('layout', { title: `${channel.displayName} clips`, body, sessionActive }) %>
