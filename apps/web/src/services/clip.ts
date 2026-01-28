@@ -1,4 +1,4 @@
-import { ClipRecord, ClipStore, TokenStore, createClip } from '@zap/core';
+import { ClipRecord, ClipStore, TokenStore, TokenRow, createClip } from '@zap/core';
 import { env } from '../env';
 import prisma from '../db';
 
@@ -20,7 +20,7 @@ const clipStore: ClipStore = {
 };
 
 const tokenStore: TokenStore = {
-  async getToken(broadcasterId) {
+  async getToken(broadcasterId: string) {
     const token = await prisma.token.findUnique({ where: { broadcasterId } });
     if (!token) {
       return null;
@@ -35,7 +35,7 @@ const tokenStore: TokenStore = {
       tokenType: token.tokenType
     };
   },
-  async upsertToken(token) {
+  async upsertToken(token: TokenRow) {
     await prisma.token.upsert({
       where: { broadcasterId: token.broadcasterId },
       update: {
