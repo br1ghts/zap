@@ -1,4 +1,4 @@
-import { ClipRecord, ClipStore, TokenStore, createClip, TokenRow } from '@zap/core';
+import { ClipRecord, ClipStore, TokenStore, createClip } from '@zap/core';
 import { env } from '../env';
 import prisma from '../db';
 

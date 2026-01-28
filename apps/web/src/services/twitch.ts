@@ -1,4 +1,3 @@
-import { fetch } from 'undici';
 import { env } from '../env';
 import { HelixUser } from '@zap/core';
 import { z } from 'zod';

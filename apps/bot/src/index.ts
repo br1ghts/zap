@@ -1,4 +1,5 @@
 import pino from 'pino';
+import { ChatUserstate } from 'tmi.js';
 import prisma from './db';
 import { createChatClient } from './twitchChat';
 import { env } from './env';
@@ -29,7 +30,7 @@ const bootstrap = async () => {
 
   const client = createChatClient(channelNames);
 
-  client.on('message', (channel, tags, message, self) => {
+  client.on('message', (channel: string, tags: ChatUserstate, message: string, self: boolean) => {
     if (self) return;
     const trimmed = message?.trim();
     if (!trimmed) return;
@@ -67,7 +68,7 @@ const bootstrap = async () => {
     logger.info({ channels: channelNames }, 'Bot connected');
   });
 
-  client.on('disconnected', (reason) => {
+  client.on('disconnected', (reason: string) => {
     logger.warn({ reason }, 'Bot disconnected, retrying');
   });
 

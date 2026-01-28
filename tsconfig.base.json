@@ -5,6 +5,7 @@
     "moduleResolution": "NodeNext",
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
+    "lib": ["ES2022", "DOM"],
     "skipLibCheck": true,
     "strict": true,
     "sourceMap": true,

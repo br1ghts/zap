@@ -16,12 +16,12 @@ const server = Fastify({
   }
 });
 
-const sessionSecret = crypto.createHash('sha256').update(env.SESSION_SECRET).digest();
+const sessionKey = crypto.createHash('sha256').update(env.SESSION_SECRET).digest();
 const isProd = process.env.NODE_ENV === 'production';
 
 server.register(fastifyCookie);
 server.register(fastifySecureSession, {
-  secret: sessionSecret,
+  key: sessionKey,
   cookie: {
     path: '/',
     sameSite: 'lax',
