@@ -124,6 +124,16 @@
                           <% if (hasUrl) { %>
                             <a class="clip-action clip-action--primary" href="<%= clip.url %>" target="_blank" rel="noreferrer">View clip</a>
                             <button type="button" class="clip-action clip-action--ghost" data-copy-url="<%= clip.url %>">Copy link</button>
+                            <a
+                              class="clip-action clip-action--ghost"
+                              data-clip-download
+                              data-clip-url="<%= clip.url %>"
+                              href="<%= clip.url %>"
+                              target="_blank"
+                              rel="noreferrer"
+                            >
+                              Download
+                            </a>
                           <% } else { %>
                             <span class="clip-action clip-action--placeholder">Awaiting clip service</span>
                           <% } %>
@@ -155,7 +165,15 @@
         if (thumbnailCache.has(clipUrl)) {
           return thumbnailCache.get(clipUrl);
         }
-        const promise = fetch(`https://clips.twitch.tv/oembed?url=${encodeURIComponent(clipUrl)}`)
+        const oembedUrl = new URL('https://clips.twitch.tv/oembed');
+        oembedUrl.searchParams.set('url', clipUrl);
+        oembedUrl.searchParams.set('format', 'json');
+        oembedUrl.searchParams.set('parent', window.location.host);
+        const promise = fetch(oembedUrl.toString(), {
+          headers: {
+            Accept: 'application/json'
+          }
+        })
           .then((res) => (res.ok ? res.json() : null))
           .then((payload) => (payload && payload.thumbnail_url ? payload.thumbnail_url : null))
           .catch(() => null);
@@ -163,9 +181,41 @@
         return promise;
       };
 
+      const deriveDownloadUrl = (thumbnailUrl) => {
+        if (!thumbnailUrl) {
+          return null;
+        }
+        const match = thumbnailUrl.match(/^(.+?)\.(?:jpg|jpeg|png)(\?.*)?$/i);
+        if (!match) {
+          return null;
+        }
+        return `${match[1]}.mp4${match[2] ?? ''}`;
+      };
+
+      const updateDownloadLink = (thumbEl, downloadUrl) => {
+        const cardEl = thumbEl.closest('.clip-card');
+        if (!cardEl) {
+          return;
+        }
+        const downloadLink = cardEl.querySelector('[data-clip-download]');
+        if (!downloadLink) {
+          return;
+        }
+        if (downloadUrl) {
+          downloadLink.href = downloadUrl;
+          downloadLink.dataset.clipDownloadReady = 'true';
+        } else {
+          downloadLink.removeAttribute('data-clip-download-ready');
+          if (downloadLink.dataset.clipUrl) {
+            downloadLink.href = downloadLink.dataset.clipUrl;
+          }
+        }
+      };
+
       const applyFallbackState = (thumbEl) => {
         thumbEl.classList.add('clip-thumb--fallback');
         thumbEl.classList.remove('clip-thumb--loading');
+        updateDownloadLink(thumbEl, null);
       };
 
       const applyImageState = (thumbEl, src) => {
@@ -174,14 +224,22 @@
           applyFallbackState(thumbEl);
           return;
         }
-        img.src = src;
-        img.onload = () => {
+        const handleLoaded = () => {
           thumbEl.classList.add('clip-thumb--loaded');
           thumbEl.classList.remove('clip-thumb--loading', 'clip-thumb--fallback');
+          thumbEl.dataset.thumbnailUrl = src;
+          updateDownloadLink(thumbEl, deriveDownloadUrl(src));
         };
-        img.onerror = () => {
+        const handleError = () => {
           applyFallbackState(thumbEl);
         };
+        img.onload = handleLoaded;
+        img.onerror = handleError;
+        if (img.src !== src) {
+          img.src = src;
+        } else if (img.complete) {
+          handleLoaded();
+        }
       };
 
       const hydrateThumbnail = async (thumbEl) => {
