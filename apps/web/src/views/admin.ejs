@@ -1,0 +1,401 @@
+<% const body = () => { %>
+  <section class="admin-shell">
+    <header class="admin-hero">
+      <div>
+        <span class="badge badge--beta">Admin</span>
+        <h1 class="section-title">Admin portal</h1>
+        <p class="muted-copy">Productivity and observability for Zap.</p>
+      </div>
+      <div class="admin-hero__kpis">
+        <div>
+          <p class="muted-copy">Failure rate</p>
+          <strong><%= summary.failureRate.toFixed(1) %>%</strong>
+        </div>
+        <div>
+          <p class="muted-copy">Last 24h requests</p>
+          <strong><%= summary.last24h.total %></strong>
+        </div>
+      </div>
+    </header>
+
+    <section class="panel-card admin-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Overview</h2>
+          <p class="section-subtitle">Live metrics for users and clip traffic.</p>
+        </div>
+        <span class="muted-copy">Snapshot refreshed on demand</span>
+      </div>
+
+      <div class="admin-summary-grid">
+        <article class="admin-summary-card">
+          <span class="muted-copy">Total users</span>
+          <strong><%= summary.totalUsers %></strong>
+        </article>
+        <article class="admin-summary-card">
+          <span class="muted-copy">Total clip requests</span>
+          <strong><%= summary.totalClips %></strong>
+        </article>
+        <article class="admin-summary-card">
+          <span class="muted-copy">Failure rate</span>
+          <strong><%= summary.failureRate.toFixed(1) %>%</strong>
+        </article>
+        <article class="admin-summary-card">
+          <span class="muted-copy">Last 24h</span>
+          <strong><%= summary.last24h.total %></strong>
+        </article>
+      </div>
+
+      <div class="admin-status-grid">
+        <article class="admin-status-card">
+          <div>
+            <span class="muted-copy">Ready</span>
+            <strong><%= summary.statusCounts.ready %></strong>
+          </div>
+          <span class="status-badge status-badge--ready">Ready</span>
+        </article>
+        <article class="admin-status-card">
+          <div>
+            <span class="muted-copy">Failed</span>
+            <strong><%= summary.statusCounts.failed %></strong>
+          </div>
+          <span class="status-badge status-badge--failed">Failed</span>
+        </article>
+        <article class="admin-status-card">
+          <div>
+            <span class="muted-copy">Pending</span>
+            <strong><%= summary.statusCounts.pending %></strong>
+          </div>
+          <span class="status-badge status-badge--pending">Pending</span>
+        </article>
+      </div>
+
+      <div class="admin-last24">
+        <div>
+          <span class="muted-copy">Ready (24h)</span>
+          <strong><%= summary.last24h.ready %></strong>
+        </div>
+        <div>
+          <span class="muted-copy">Failed (24h)</span>
+          <strong><%= summary.last24h.failed %></strong>
+        </div>
+        <div>
+          <span class="muted-copy">Pending (24h)</span>
+          <strong><%= summary.last24h.pending %></strong>
+        </div>
+      </div>
+
+      <div class="admin-top-channels">
+        <div class="admin-subheader">
+          <h3>Top channels</h3>
+          <span class="muted-copy">By total clips</span>
+        </div>
+        <div class="admin-top-channel-list">
+          <% if (summary.topChannels.length === 0) { %>
+            <p class="muted-copy">No clip activity yet.</p>
+          <% } else { %>
+            <% summary.topChannels.forEach((channel, index) => { %>
+              <div class="admin-top-channel-row">
+                <span class="muted-copy">#<%= index + 1 %></span>
+                <div>
+                  <strong><%= channel.displayName %></strong>
+                  <p class="muted-copy">@<%= channel.login %></p>
+                </div>
+                <span class="muted-copy"><%= channel.clipCount %> clips</span>
+              </div>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+
+      <div class="admin-recent">
+        <div class="admin-subheader">
+          <h3>Recent 20 clip requests</h3>
+          <span class="muted-copy">Newest timestamps with status and errors.</span>
+        </div>
+        <div class="admin-recent-grid">
+          <% if (summary.recentClips.length === 0) { %>
+            <p class="muted-copy">No clips have been requested yet.</p>
+          <% } else { %>
+            <% summary.recentClips.forEach((clip) => { %>
+              <article class="admin-recent-card">
+                <div class="admin-recent-card__meta">
+                  <div>
+                    <p class="muted-copy"><%= clip.createdAtLabel %></p>
+                    <strong><%= clip.channel.displayName %></strong>
+                    <p class="muted-copy">@<%= clip.channel.login %></p>
+                  </div>
+                  <span class="status-badge status-badge--<%= clip.statusTone %>"><%= clip.statusLabel %></span>
+                </div>
+                <p class="muted-copy">Requested by <%= clip.requestedBy %></p>
+                <% if (clip.clipId) { %>
+                  <p class="muted-copy">Clip ID: <%= clip.clipId %></p>
+                <% } %>
+                <div class="admin-recent-card__actions">
+                  <% if (clip.url) { %>
+                    <a class="clip-link clip-cta" href="<%= clip.url %>" target="_blank" rel="noreferrer">View clip</a>
+                  <% } else { %>
+                    <span class="muted-copy">No URL yet</span>
+                  <% } %>
+                  <% if (clip.error) { %>
+                    <details class="admin-error-details">
+                      <summary>Error details</summary>
+                      <pre><%= clip.error %></pre>
+                    </details>
+                  <% } %>
+                </div>
+              </article>
+            <% }) %>
+          <% } %>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel-card admin-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Users</h2>
+          <p class="section-subtitle">Connected broadcasters and token health.</p>
+        </div>
+      </div>
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Twitch</th>
+              <th>Broadcaster ID</th>
+              <th>Connected</th>
+              <th>Last seen</th>
+              <th>Token health</th>
+            </tr>
+          </thead>
+          <tbody>
+            <% users.forEach((user) => { %>
+              <tr>
+                <td data-label="Twitch">
+                  <strong><%= user.displayName %></strong>
+                  <p class="muted-copy">@<%= user.login %></p>
+                </td>
+                <td data-label="Broadcaster ID"><%= user.broadcasterId %></td>
+                <td data-label="Connected"><%= user.connectedAt %></td>
+                <td data-label="Last seen"><%= user.lastSeenAt %></td>
+                <td data-label="Token health">
+                  <span class="token-pill token-pill--<%= user.tokenHealth %>">
+                    <%= user.tokenHealth[0].toUpperCase() + user.tokenHealth.slice(1) %>
+                  </span>
+                  <% if (user.tokenExpiresAt) { %>
+                    <p class="muted-copy">Expires <%= user.tokenExpiresAt %></p>
+                  <% } %>
+                </td>
+              </tr>
+            <% }) %>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="panel-card admin-section">
+      <div class="section-header">
+        <div>
+          <h2 class="section-title">Clips</h2>
+          <p class="section-subtitle">Filter, search, and page through clip requests.</p>
+        </div>
+      </div>
+      <form class="admin-filter-bar" data-admin-clips-form>
+        <label>
+          Status
+          <select data-admin-status>
+            <option value="">All</option>
+            <option value="ready">Ready</option>
+            <option value="failed">Failed</option>
+            <option value="pending">Pending</option>
+          </select>
+        </label>
+        <label>
+          Channel
+          <select data-admin-channel>
+            <option value="">All</option>
+            <% users.forEach((user) => { %>
+              <option value="<%= user.broadcasterId %>"><%= user.displayName %> (@<%= user.login %>)</option>
+            <% }) %>
+          </select>
+        </label>
+        <label class="admin-filter-search">
+          Clip ID / URL
+          <input type="search" data-admin-search placeholder="Search clips" />
+        </label>
+        <button type="submit" class="btn btn-primary">Apply</button>
+      </form>
+      <div class="admin-table-wrapper">
+        <table class="admin-table">
+          <thead>
+            <tr>
+              <th>Requested at</th>
+              <th>Channel</th>
+              <th>Status</th>
+              <th>Clip</th>
+              <th>Requested by</th>
+              <th>Error</th>
+            </tr>
+          </thead>
+          <tbody data-admin-clips-body>
+            <tr>
+              <td colspan="6">Loading clips…</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <div class="admin-pagination">
+        <button type="button" class="btn btn-ghost" data-admin-prev disabled>Prev</button>
+        <span data-admin-pagination-info>Page 1</span>
+        <button type="button" class="btn btn-ghost" data-admin-next>Next</button>
+      </div>
+    </section>
+
+    <script>
+      (() => {
+        const CLIPS_PER_PAGE = 12;
+        const statusSelect = document.querySelector('[data-admin-status]');
+        const channelSelect = document.querySelector('[data-admin-channel]');
+        const searchInput = document.querySelector('[data-admin-search]');
+        const clipsBody = document.querySelector('[data-admin-clips-body]');
+        const paginationInfo = document.querySelector('[data-admin-pagination-info]');
+        const prevButton = document.querySelector('[data-admin-prev]');
+        const nextButton = document.querySelector('[data-admin-next]');
+        const statusClassMap = {
+          ready: 'status-badge--ready',
+          failed: 'status-badge--failed',
+          pending: 'status-badge--pending'
+        };
+        let currentPage = 1;
+
+        const escapeHtml = (value = '') =>
+          value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+
+        const escapeAttr = (value = '') => escapeHtml(value);
+
+        const buildParams = () => {
+          const params = new URLSearchParams();
+          const statusValue = statusSelect?.value;
+          if (statusValue) {
+            params.set('status', statusValue);
+          }
+          const channelValue = channelSelect?.value;
+          if (channelValue) {
+            params.set('channelId', channelValue);
+          }
+          const searchValue = searchInput?.value.trim();
+          if (searchValue) {
+            params.set('search', searchValue);
+          }
+          params.set('page', currentPage.toString());
+          params.set('pageSize', CLIPS_PER_PAGE.toString());
+          return params;
+        };
+
+        const renderClipRow = (clip) => {
+          const statusClass = statusClassMap[clip.statusTone] || statusClassMap.pending;
+          const clipIdMarkup = clip.clipId
+            ? `<div class="muted-copy">ID: ${escapeHtml(clip.clipId)}</div>`
+            : '';
+          const clipLinkMarkup = clip.url
+            ? `<a class="clip-link clip-cta" href="${escapeAttr(clip.url)}" target="_blank" rel="noreferrer">View clip</a>`
+            : '<span class="muted-copy">—</span>';
+          const errorMarkup = clip.error
+            ? `<details class="admin-error-details"><summary>Error</summary><pre>${escapeHtml(clip.error)}</pre></details>`
+            : '';
+          return `
+            <tr>
+              <td data-label="Requested at">${escapeHtml(clip.createdAtLabel)}</td>
+              <td data-label="Channel">
+                <strong>${escapeHtml(clip.channel.displayName)}</strong>
+                <br />
+                <span class="muted-copy">@${escapeHtml(clip.channel.login)}</span>
+              </td>
+              <td data-label="Status">
+                <span class="status-badge ${statusClass}">${escapeHtml(clip.statusLabel)}</span>
+              </td>
+              <td data-label="Clip">
+                ${clipIdMarkup}
+                ${clipLinkMarkup}
+              </td>
+              <td data-label="Requested by">${escapeHtml(clip.requestedBy)}</td>
+              <td data-label="Error">${errorMarkup}</td>
+            </tr>
+          `;
+        };
+
+        const renderRows = (payload) => {
+          if (!clipsBody || !paginationInfo) {
+            return;
+          }
+          if (payload.clips.length === 0) {
+            clipsBody.innerHTML = '<tr><td colspan="6">No clips match the filters.</td></tr>';
+          } else {
+            clipsBody.innerHTML = payload.clips.map(renderClipRow).join('');
+          }
+          const totalPages = Math.max(1, Math.ceil(payload.total / payload.pageSize));
+          paginationInfo.textContent = `Page ${payload.page} of ${totalPages}`;
+          prevButton.disabled = payload.page <= 1;
+          nextButton.disabled = payload.page >= totalPages;
+        };
+
+        const loadClips = async (resetPage = false) => {
+          if (resetPage) {
+            currentPage = 1;
+          }
+          if (!clipsBody) {
+            return;
+          }
+          clipsBody.innerHTML = '<tr><td colspan="6">Loading clips…</td></tr>';
+          const params = buildParams();
+          try {
+            const response = await fetch(`/api/admin/clips?${params.toString()}`);
+            if (!response.ok) {
+              throw new Error('Failed to load clips');
+            }
+            const payload = await response.json();
+            renderRows(payload);
+          } catch (error) {
+            clipsBody.innerHTML = '<tr><td colspan="6">Unable to load clips.</td></tr>';
+            console.error(error);
+          }
+        };
+
+        prevButton?.addEventListener('click', () => {
+          if (currentPage > 1) {
+            currentPage -= 1;
+            loadClips();
+          }
+        });
+
+        nextButton?.addEventListener('click', () => {
+          currentPage += 1;
+          loadClips();
+        });
+
+        const form = document.querySelector('[data-admin-clips-form]');
+        form?.addEventListener('submit', (event) => {
+          event.preventDefault();
+          currentPage = 1;
+          loadClips();
+        });
+
+        [statusSelect, channelSelect].forEach((input) => {
+          input?.addEventListener('change', () => {
+            currentPage = 1;
+            loadClips();
+          });
+        });
+
+        loadClips();
+      })();
+    </script>
+  </section>
+<% } %>
+<%- include('layout', { title: 'Admin', body, sessionActive: true, showAdminLink: true }) %>

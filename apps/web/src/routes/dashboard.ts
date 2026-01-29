@@ -1,6 +1,7 @@
 import { FastifyPluginAsync } from 'fastify';
 import { Channel, Clip } from '@prisma/client';
 import prisma from '../db';
+import { isAdminChannel } from '../services/admin';
 
 const SESSION_GAP_MS = 1000 * 60 * 90; // 1.5 hours gap to split stream sessions
 
@@ -148,7 +149,8 @@ const buildChannelViewModel = async (channel: Channel) => {
     clipStats: stats,
     lastClipLabel: relativeTimeFromNow(lastClip ? lastClip.createdAtMs : null),
     connectedLabel: DATE_FORMATTER.format(channel.createdAt),
-    sessionActive: true
+    sessionActive: true,
+    isAdmin: isAdminChannel(channel)
   };
 };
 

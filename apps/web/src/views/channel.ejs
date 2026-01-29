@@ -119,4 +119,4 @@
     </div>
   </div>
 <% } %>
-<%- include('layout', { title: `${channel.displayName} clips`, body, sessionActive }) %>
+<%- include('layout', { title: `${channel.displayName} clips`, body, sessionActive, showAdminLink: isAdmin }) %>

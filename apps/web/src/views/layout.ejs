@@ -101,6 +101,12 @@
         gap: 0.8rem;
       }
 
+      .header-actions__links {
+        display: flex;
+        align-items: center;
+        gap: 0.4rem;
+      }
+
       main {
         flex: 1;
         width: 100%;
@@ -800,6 +806,293 @@
           padding: 1.25rem;
         }
       }
+      /* Admin UI */
+      .admin-shell {
+        display: flex;
+        flex-direction: column;
+        gap: 2rem;
+      }
+
+      .admin-hero {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .admin-hero__kpis {
+        display: flex;
+        gap: 1rem;
+      }
+
+      .admin-summary-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 1rem;
+      }
+
+      .admin-summary-card {
+        background: var(--panel);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        padding: 1.25rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.15rem;
+      }
+
+      .admin-status-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 0.75rem;
+      }
+
+      .admin-status-card {
+        background: var(--panel);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        padding: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .admin-last24 {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+        gap: 0.65rem;
+      }
+
+      .admin-subheader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 0.5rem;
+        margin-bottom: 0.75rem;
+      }
+
+      .admin-top-channels {
+        margin-top: 1.5rem;
+      }
+
+      .admin-top-channel-list {
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .admin-top-channel-row {
+        display: grid;
+        grid-template-columns: auto 1fr auto;
+        gap: 0.8rem;
+        align-items: center;
+        padding: 0.85rem 1rem;
+        border-radius: 14px;
+        border: 1px solid rgba(255, 255, 255, 0.05);
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .admin-recent {
+        margin-top: 2rem;
+      }
+
+      .admin-recent-grid {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 1rem;
+      }
+
+      .admin-recent-card {
+        background: var(--panel);
+        border: 1px solid var(--card-border);
+        border-radius: 18px;
+        padding: 1rem;
+        display: flex;
+        flex-direction: column;
+        gap: 0.65rem;
+      }
+
+      .admin-recent-card__meta {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        gap: 1rem;
+      }
+
+      .admin-recent-card__actions {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .admin-error-details {
+        font-family: 'IBM Plex Mono', 'SFMono-Regular', Consolas, monospace;
+        font-size: 0.8rem;
+        color: #ffb8c0;
+        background: rgba(255, 92, 103, 0.12);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 92, 103, 0.25);
+        padding: 0.65rem 0.8rem;
+        line-height: 1.3;
+        max-height: 140px;
+        overflow: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+      }
+
+      .admin-error-details summary {
+        cursor: pointer;
+        font-weight: 600;
+        display: inline-flex;
+        gap: 0.35rem;
+        align-items: center;
+      }
+
+      .admin-table-wrapper {
+        margin-top: 1rem;
+        width: 100%;
+        overflow-x: auto;
+      }
+
+      .admin-table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 720px;
+      }
+
+      .admin-table th,
+      .admin-table td {
+        padding: 0.85rem 1rem;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        text-align: left;
+        font-size: 0.95rem;
+      }
+
+      .admin-table thead th {
+        text-transform: uppercase;
+        letter-spacing: 0.08em;
+        font-size: 0.75rem;
+        color: var(--muted);
+        position: sticky;
+        top: 0;
+        background: rgba(2, 3, 11, 0.95);
+        z-index: 2;
+      }
+
+      .admin-table tbody tr:hover {
+        background: rgba(255, 255, 255, 0.02);
+      }
+
+      .admin-filter-bar {
+        margin-top: 1rem;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) auto;
+        gap: 0.75rem;
+        align-items: end;
+      }
+
+      .admin-filter-bar label {
+        display: flex;
+        flex-direction: column;
+        gap: 0.35rem;
+        font-size: 0.8rem;
+        color: var(--muted);
+        letter-spacing: 0.08em;
+        text-transform: uppercase;
+      }
+
+      .admin-filter-bar select,
+      .admin-filter-bar input {
+        background: rgba(255, 255, 255, 0.04);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        border-radius: 12px;
+        padding: 0.65rem 0.85rem;
+        color: #fff;
+      }
+
+      .admin-filter-search input {
+        min-width: 200px;
+      }
+
+      .admin-pagination {
+        margin-top: 1rem;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      .token-pill--valid {
+        border-color: rgba(0, 209, 167, 0.6);
+        color: #00d1a7;
+      }
+
+      .token-pill--expired {
+        border-color: rgba(255, 92, 103, 0.6);
+        color: var(--danger);
+      }
+
+      .token-pill--unknown {
+        border-color: rgba(255, 255, 255, 0.4);
+        color: var(--muted-strong);
+      }
+
+      @media (max-width: 860px) {
+        .admin-hero {
+          flex-direction: column;
+          align-items: flex-start;
+        }
+
+        .admin-summary-grid,
+        .admin-status-grid,
+        .admin-last24 {
+          grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        }
+
+        .admin-filter-bar {
+          grid-template-columns: 1fr;
+        }
+
+        .admin-table {
+          min-width: unset;
+        }
+
+        .admin-table thead {
+          display: none;
+        }
+
+        .admin-table tbody tr {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 0.35rem;
+          padding: 0.8rem 0;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .admin-table td {
+          display: flex;
+          justify-content: space-between;
+          flex-wrap: wrap;
+          gap: 0.35rem;
+          font-size: 0.9rem;
+        }
+
+        .admin-table td::before {
+          content: attr(data-label);
+          flex: 1 1 100%;
+          font-size: 0.7rem;
+          color: var(--muted);
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+        }
+      }
     </style>
   </head>
   <body>
@@ -815,7 +1108,12 @@
         <div class="header-actions">
           <span class="brand-tagline">A clip bot</span>
           <% if (sessionActiveFlag) { %>
-            <a class="button secondary" href="/logout">Log out</a>
+            <div class="header-actions__links">
+              <% if (showAdminLink) { %>
+                <a class="btn btn-ghost" href="/admin">Admin</a>
+              <% } %>
+              <a class="btn btn-secondary" href="/logout">Log out</a>
+            </div>
           <% } else { %>
             <span class="chip chip--glow">Beta</span>
           <% } %>
@@ -826,7 +1124,6 @@
           <%- body() %>
         </div>
       </main>
-      <footer>Zap · modern clip history for broadcasters · crafted with intent</footer>
     </div>
   </body>
 </html>
