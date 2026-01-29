@@ -56,7 +56,7 @@
             No clips recorded yet. Keep redeeming <code>!clip</code> and hit refresh to see requests populate this view.
           </div>
         <% } else { %>
-          <div class="clip-timeline">
+          <div class="clip-timeline" data-broadcaster-id="<%= channel.broadcasterId %>">
             <% clipGroups.forEach((group) => { %>
               <article class="clip-group">
                 <header class="clip-group__header">
@@ -78,7 +78,12 @@
                     <article class="clip-card" data-status="<%= tone %>"<% if (hasUrl) { %> data-clip-url="<%= clip.url %>"<% } %>>
                       <% if (hasUrl) { %>
                         <a class="clip-card__thumb-link" href="<%= clip.url %>" target="_blank" rel="noreferrer">
-                          <div class="clip-thumb clip-thumb--loading" data-clip-thumb data-clip-url="<%= clip.url %>">
+                          <div
+                            class="clip-thumb clip-thumb--loading"
+                            data-clip-thumb
+                            data-clip-url="<%= clip.url %>"
+                            data-clip-id="<%= clip.clipId ?? '' %>"
+                          >
                             <img class="clip-thumb__img" alt="<%= title %> thumbnail" data-clip-thumb-img />
                             <div class="clip-thumb__fallback" data-clip-thumb-fallback aria-hidden="true">
                               <svg viewBox="0 0 24 24" role="presentation" aria-hidden="true">
@@ -124,16 +129,13 @@
                           <% if (hasUrl) { %>
                             <a class="clip-action clip-action--primary" href="<%= clip.url %>" target="_blank" rel="noreferrer">View clip</a>
                             <button type="button" class="clip-action clip-action--ghost" data-copy-url="<%= clip.url %>">Copy link</button>
-                            <a
+                            <button
+                              type="button"
                               class="clip-action clip-action--ghost"
                               data-clip-download
+                              data-clip-id="<%= clip.clipId ?? '' %>"
                               data-clip-url="<%= clip.url %>"
-                              href="<%= clip.url %>"
-                              target="_blank"
-                              rel="noreferrer"
-                            >
-                              Download
-                            </a>
+                            >Download</button>
                           <% } else { %>
                             <span class="clip-action clip-action--placeholder">Awaiting clip service</span>
                           <% } %>
@@ -157,65 +159,55 @@
       }
 
       const thumbnailCache = new Map();
+      const PLACEHOLDER_SRC = '/assets/clip-placeholder.svg';
 
-      const fetchThumbnail = (clipUrl) => {
-        if (!clipUrl) {
+	      const parseClipIdFromUrl = (clipUrl) => {
+	        if (!clipUrl) return '';
+	        try {
+	          const url = new URL(clipUrl);
+	          if (url.hostname === 'clips.twitch.tv') {
+	            return url.pathname.replace(/^\/+/, '').split('/')[0] ?? '';
+	          }
+	          const parts = url.pathname.split('/').filter(Boolean);
+	          const clipIndex = parts.findIndex((segment) => segment === 'clip');
+	          if (clipIndex >= 0 && parts[clipIndex + 1]) {
+	            return parts[clipIndex + 1];
+          }
+          return parts[parts.length - 1] ?? '';
+        } catch {
+          return '';
+        }
+      };
+
+      const fetchThumbnail = (clipId, clipUrl) => {
+        if (!clipId && !clipUrl) {
           return Promise.resolve(null);
         }
-        if (thumbnailCache.has(clipUrl)) {
-          return thumbnailCache.get(clipUrl);
+        const cacheKey = clipId || clipUrl;
+        if (thumbnailCache.has(cacheKey)) {
+          return thumbnailCache.get(cacheKey);
         }
-        const oembedUrl = new URL('https://clips.twitch.tv/oembed');
-        oembedUrl.searchParams.set('url', clipUrl);
-        oembedUrl.searchParams.set('format', 'json');
-        oembedUrl.searchParams.set('parent', window.location.host);
-        const promise = fetch(oembedUrl.toString(), {
-          headers: {
-            Accept: 'application/json'
-          }
-        })
+        const url = new URL('/api/clips/thumbnail', window.location.origin);
+        if (clipId) url.searchParams.set('clipId', clipId);
+        if (clipUrl) url.searchParams.set('clipUrl', clipUrl);
+        const promise = fetch(url.toString(), { headers: { Accept: 'application/json' } })
           .then((res) => (res.ok ? res.json() : null))
-          .then((payload) => (payload && payload.thumbnail_url ? payload.thumbnail_url : null))
+          .then((payload) => (payload && payload.thumbnailUrl ? payload.thumbnailUrl : null))
           .catch(() => null);
-        thumbnailCache.set(clipUrl, promise);
+        thumbnailCache.set(cacheKey, promise);
         return promise;
       };
 
-      const deriveDownloadUrl = (thumbnailUrl) => {
-        if (!thumbnailUrl) {
-          return null;
-        }
-        const match = thumbnailUrl.match(/^(.+?)\.(?:jpg|jpeg|png)(\?.*)?$/i);
-        if (!match) {
-          return null;
-        }
-        return `${match[1]}.mp4${match[2] ?? ''}`;
-      };
-
-      const updateDownloadLink = (thumbEl, downloadUrl) => {
-        const cardEl = thumbEl.closest('.clip-card');
-        if (!cardEl) {
-          return;
-        }
-        const downloadLink = cardEl.querySelector('[data-clip-download]');
-        if (!downloadLink) {
-          return;
-        }
-        if (downloadUrl) {
-          downloadLink.href = downloadUrl;
-          downloadLink.dataset.clipDownloadReady = 'true';
-        } else {
-          downloadLink.removeAttribute('data-clip-download-ready');
-          if (downloadLink.dataset.clipUrl) {
-            downloadLink.href = downloadLink.dataset.clipUrl;
-          }
-        }
-      };
-
       const applyFallbackState = (thumbEl) => {
+        const img = thumbEl.querySelector('[data-clip-thumb-img]');
+        if (img && img.src !== PLACEHOLDER_SRC) {
+          img.onerror = null;
+          img.onload = null;
+          img.src = PLACEHOLDER_SRC;
+          img.dataset.placeholderApplied = 'true';
+        }
         thumbEl.classList.add('clip-thumb--fallback');
-        thumbEl.classList.remove('clip-thumb--loading');
-        updateDownloadLink(thumbEl, null);
+        thumbEl.classList.remove('clip-thumb--loading', 'clip-thumb--loaded');
       };
 
       const applyImageState = (thumbEl, src) => {
@@ -228,14 +220,17 @@
           thumbEl.classList.add('clip-thumb--loaded');
           thumbEl.classList.remove('clip-thumb--loading', 'clip-thumb--fallback');
           thumbEl.dataset.thumbnailUrl = src;
-          updateDownloadLink(thumbEl, deriveDownloadUrl(src));
         };
         const handleError = () => {
+          if (img.dataset.placeholderApplied === 'true') {
+            return;
+          }
           applyFallbackState(thumbEl);
         };
         img.onload = handleLoaded;
         img.onerror = handleError;
         if (img.src !== src) {
+          img.dataset.placeholderApplied = 'false';
           img.src = src;
         } else if (img.complete) {
           handleLoaded();
@@ -245,6 +240,8 @@
       const hydrateThumbnail = async (thumbEl) => {
         const clipUrl = thumbEl.dataset.clipUrl;
         const known = thumbEl.dataset.thumbnailUrl;
+        const datasetClipId = thumbEl.dataset.clipId;
+        const clipId = datasetClipId && datasetClipId.trim().length ? datasetClipId.trim() : parseClipIdFromUrl(clipUrl);
         if (!clipUrl && !known) {
           applyFallbackState(thumbEl);
           return;
@@ -254,7 +251,7 @@
           return;
         }
         thumbEl.classList.add('clip-thumb--loading');
-        const thumbnail = await fetchThumbnail(clipUrl);
+        const thumbnail = await fetchThumbnail(clipId, clipUrl);
         if (thumbnail) {
           applyImageState(thumbEl, thumbnail);
         } else {
@@ -304,6 +301,94 @@
               button.textContent = originalLabel;
             }, 1400);
           }
+        });
+      });
+
+      timelineEl.querySelectorAll('[data-clip-download]').forEach((button) => {
+        const originalLabel = button.textContent;
+        let busy = false;
+
+        const setState = (next) => {
+          busy = next.busy;
+          button.disabled = next.busy;
+          button.textContent = next.label ?? originalLabel;
+          button.classList.toggle('clip-action--error', Boolean(next.error));
+          button.setAttribute('aria-busy', next.busy ? 'true' : 'false');
+        };
+
+        button.addEventListener('click', async () => {
+          if (busy) {
+            return;
+          }
+          const broadcasterId = timelineEl.dataset.broadcasterId;
+          const clipId = button.dataset.clipId;
+          const clipUrl = button.dataset.clipUrl;
+          if (!clipUrl || !broadcasterId) {
+            return;
+          }
+
+          const resolvedClipId = clipId || parseClipIdFromUrl(clipUrl);
+          if (!resolvedClipId) {
+            return;
+          }
+
+          setState({ busy: true, label: 'Downloading…', error: false });
+          try {
+            const urlEndpoint = new URL(
+              `/api/twitch/clips/${encodeURIComponent(resolvedClipId)}/download-url`,
+              window.location.origin
+            );
+            urlEndpoint.searchParams.set('broadcaster_id', broadcasterId);
+
+            const res = await fetch(urlEndpoint.toString(), { credentials: 'same-origin' });
+            if (!res.ok) {
+              let detail = '';
+              try {
+                const json = await res.json();
+                detail = json && json.error ? String(json.error) : '';
+              } catch {
+                try {
+                  detail = await res.text();
+                } catch {
+                  detail = '';
+                }
+              }
+              console.error('[clip download] failed', { status: res.status, detail });
+              throw new Error(detail || `Download failed (${res.status})`);
+            }
+
+            const json = await res.json().catch(() => null);
+            const downloadUrl = json && typeof json.downloadUrl === 'string' ? json.downloadUrl : '';
+            if (!downloadUrl) {
+              throw new Error('No download URL available');
+            }
+
+            const downloadEndpoint = new URL(
+              `/api/twitch/clips/${encodeURIComponent(resolvedClipId)}/download`,
+              window.location.origin
+            );
+            downloadEndpoint.searchParams.set('broadcaster_id', broadcasterId);
+
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = downloadEndpoint.toString();
+            document.body.appendChild(iframe);
+            setTimeout(() => {
+              try {
+                document.body.removeChild(iframe);
+              } catch {}
+            }, 30000);
+          } catch (error) {
+            const message = error instanceof Error ? error.message : '';
+            const label =
+              message && message.toLowerCase().includes('reconnect twitch')
+                ? 'Reconnect Twitch'
+                : 'Download failed';
+            setState({ busy: false, label, error: true });
+            setTimeout(() => setState({ busy: false, label: originalLabel, error: false }), 1600);
+            return;
+          }
+          setTimeout(() => setState({ busy: false, label: originalLabel, error: false }), 350);
         });
       });
     })();

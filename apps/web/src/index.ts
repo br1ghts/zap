@@ -9,6 +9,7 @@ import healthRoute from './routes/health';
 import authRoute from './routes/auth.twitch';
 import dashboardRoute from './routes/dashboard';
 import adminRoute from './routes/admin';
+import clipsRoute from './routes/clips';
 import { env } from './env';
 
 const server = Fastify({
@@ -43,6 +44,7 @@ server.register(healthRoute);
 server.register(authRoute);
 server.register(dashboardRoute);
 server.register(adminRoute);
+server.register(clipsRoute);
 
 const start = async () => {
   try {

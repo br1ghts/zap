@@ -15,7 +15,8 @@ export function buildTwitchAuthUrl(state: string): string {
   url.searchParams.set('client_id', env.TWITCH_CLIENT_ID);
   url.searchParams.set('redirect_uri', env.TWITCH_REDIRECT_URI);
   url.searchParams.set('response_type', 'code');
-  url.searchParams.set('scope', 'clips:edit user:read:email');
+  // Needed for Helix clip downloads endpoint: editor:manage:clips or channel:manage:clips.
+  url.searchParams.set('scope', 'clips:edit user:read:email channel:manage:clips editor:manage:clips');
   url.searchParams.set('state', state);
   url.searchParams.set('force_verify', 'true');
 
